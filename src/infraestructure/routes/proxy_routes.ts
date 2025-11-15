@@ -1,29 +1,41 @@
 import { Router } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
+import { MICROSERVICES } from '../../config/config';
+import path from 'path';
 
 const router = Router();
 
-const MICROSERVICES = {
-    auth: process.env.AUTH_URL,     
-    chat: process.env.CHAT_URL,
-    posts: process.env.POSTS_URL,
-    notifications: process.env.NOTIFICATIONS_URL
+const onProxyRes = (proxyRes: any, req: any, res: any) => {
+    console.log(
+        `[Gateway] Proxy Exitoso: ${req.method} ${req.originalUrl} -> Microservicio respondió con ${proxyRes.statusCode}`
+    );
+};
+
+const onError = (err: any, req: any, res: any) => {
+    console.error(
+        `[Gateway] Proxy ERROR: ${req.method} ${req.originalUrl} -> ${err.message}`
+    );
+    if (!res.headersSent) {
+        res.status(502).json({ message: 'Error de conexión con el servicio (Bad Gateway).' });
+    }
 };
 
 // Proxy para el servicio de Autenticación
 router.use('/auth', createProxyMiddleware({
     target: MICROSERVICES.auth,
     changeOrigin: true,
-    pathRewrite: {
-        '^/api/auth': '',
+    pathRewrite: (path, req) => {
+        const newPath = '/api/auth' + path;
+        console.log(`[Gateway] PathRewrite: ${path} -> ${newPath}`); 
+        return newPath;
     },
     on: {
-        proxyReq: (proxyReq, req, res) => {
-            console.log(`Petición redirigida al servicio de autenticación:`);
-            fixRequestBody(proxyReq, req,);
-        },
+        proxyReq: fixRequestBody,
+        proxyRes: onProxyRes,
+        error: onError,
     }
 }));
+
 
 // Proxy para el servicio de Chat
 router.use('/chat', createProxyMiddleware({
@@ -60,5 +72,7 @@ router.use('/notifications', createProxyMiddleware({
         proxyReq: fixRequestBody,
     }
 }));
+
+
 
 export default router;
