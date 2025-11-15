@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { MICROSERVICES } from '../../config/config';
-import path from 'path';
 
 const router = Router();
 
