@@ -19,8 +19,8 @@ router.use('/auth', createProxyMiddleware({
     },
     on: {
         proxyReq: (proxyReq, req, res) => {
-            console.log(`Petición redirigida al servicio de autenticación: ${req.method} ${req.originalUrl}`);
-            fixRequestBody(proxyReq, req, res);
+            console.log(`Petición redirigida al servicio de autenticación:`);
+            fixRequestBody(proxyReq, req,);
         },
     }
 }));

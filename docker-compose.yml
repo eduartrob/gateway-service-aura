@@ -1,42 +1,23 @@
 version: '3.8'
 
 services:
-  # Servicio de la Base de Datos para Kong
-  kong-db:
-    image: postgres:13
-    container_name: kong-db
+  api-gateway:
+    build: . # Construye la imagen usando el Dockerfile en el directorio actual
+    container_name: api-gateway
     environment:
-      - POSTGRES_USER=kong         # Usuario para la base de datos
-      - POSTGRES_DB=kong           # Nombre de la base de datos
-      - POSTGRES_PASSWORD=kongpass # Contraseña (solo para desarrollo local)
+      - PORT=5000 # Puerto en el que corre la aplicación dentro del contenedor
+      # URLs de los microservicios. Debes apuntar a los nombres de servicio en Docker Compose.
+      - AUTH_URL=http://auth-service:3001
+      - CHAT_URL=http://chat-service:3002
+      - POSTS_URL=http://posts-service:3003
+      - NOTIFICATIONS_URL=http://notifications-service:3004
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "kong"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "5000:5000" # Mapea el puerto 5000 del host al 5000 del contenedor
+    volumes:
+      # Opcional: Monta el código fuente para desarrollo con recarga en caliente (hot-reloading)
+      # Para producción, es mejor no usar volumes y confiar en la imagen construida.
+      - .:/usr/src/app
+      - /usr/src/app/node_modules # Evita que la carpeta local de node_modules sobreescriba la del contenedor
 
-  # Servicio del API Gateway Kong
-  kong:
-    image: kong:3.4
-    container_name: kong
-    user: root # Necesario para algunas configuraciones iniciales
-    environment:
-      - KONG_DATABASE=postgres             # Le decimos a Kong que use PostgreSQL
-      - KONG_PG_HOST=kong-db               # El host de la base de datos (el nombre del servicio de arriba)
-      - KONG_PG_USER=kong
-      - KONG_PG_PASSWORD=kongpass
-      - KONG_PROXY_ACCESS_LOG=/dev/stdout  # Enviar logs a la salida estándar
-      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
-      - KONG_PROXY_ERROR_LOG=/dev/stderr
-      - KONG_ADMIN_ERROR_LOG=/dev/stderr
-      - KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl # Puerto de administración
-    depends_on:
-      kong-db:
-        condition: service_healthy # Kong no arrancará hasta que la BD esté lista
-    ports:
-      - "8000:8000" # Puerto para el tráfico HTTP de la API
-      - "8443:8443" # Puerto para el tráfico HTTPS de la API
-      - "8001:8001" # Puerto para la API de Administración de Kong
-      - "8444:8444" # Puerto para la API de Administración de Kong (SSL)
+# Aquí deberías añadir las definiciones de tus otros servicios
+# (auth-service, chat-service, etc.) para que el gateway pueda comunicarse con ellos.
