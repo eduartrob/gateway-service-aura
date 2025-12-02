@@ -72,7 +72,7 @@ router.use('/social', createProxyMiddleware({
     target: MICROSERVICES.social,
     changeOrigin: true,
     pathRewrite: {
-        '^/api/social': '/api/v1',
+        '^/': '/api/v1/',
     },
     on: {
         proxyReq: onProxyReq,
