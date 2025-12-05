@@ -65,7 +65,7 @@ router.use('/messaging', createProxyMiddleware({
     target: MICROSERVICES.messaging,
     changeOrigin: true,
     pathRewrite: {
-        '^/api/messaging': '/api/v1',
+        '^/': '/api/v1/',  // Express ya quitó /messaging, solo añadir /api/v1/
     },
     on: {
         proxyReq: onProxyReq,
