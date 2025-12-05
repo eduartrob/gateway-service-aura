@@ -17,8 +17,10 @@ router.use('/uploads', createProxyMiddleware({
     pathRewrite: {
         '^/uploads': '/uploads',
     },
-    onProxyReq: (proxyReq, req, res) => {
-        console.log(`🔄 [Gateway] Proxy upload: ${req.method} ${req.originalUrl} -> ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`);
+    on: {
+        proxyReq: (proxyReq: any, req: any, res: any) => {
+            console.log(`🔄 [Gateway] Proxy upload: ${req.method} ${req.originalUrl}`);
+        },
     },
 }));
 
