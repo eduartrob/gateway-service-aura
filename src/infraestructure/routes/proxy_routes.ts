@@ -60,10 +60,24 @@ router.use('/auth', createProxyMiddleware({
 }));
 
 
+// 🔥 WebSocket proxy for Socket.io (messaging real-time)
+router.use('/socket.io', createProxyMiddleware({
+    target: MICROSERVICES.messaging,
+    changeOrigin: true,
+    ws: true,  // Enable WebSocket proxying
+    on: {
+        proxyReq: (proxyReq: any, req: any, res: any) => {
+            console.log('🔌 [Gateway WebSocket] Proxying socket.io request');
+        },
+        error: onError,
+    }
+}));
+
 // Proxy para el servicio de Messaging (Chat)
 router.use('/messaging', createProxyMiddleware({
     target: MICROSERVICES.messaging,
     changeOrigin: true,
+    ws: true,  // 🔥 Enable WebSocket for messaging
     pathRewrite: {
         '^/': '/api/v1/',  // Express ya quitó /messaging, solo añadir /api/v1/
     },
