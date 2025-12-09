@@ -68,17 +68,24 @@ const wsProxy = createProxyMiddleware({
     changeOrigin: true,
     ws: true,  // Enable WebSocket proxying
     pathRewrite: (path: string) => {
-        // Express strips /socket.io when using app.use('/socket.io', ...)
-        // We need to add it back for the messaging-service
-        return '/socket.io' + path;
+        // Express middleware strips /socket.io, but WebSocket upgrade keeps it
+        // Only add /socket.io if not already present
+        if (path.startsWith('/socket.io')) {
+            console.log(`🔌 [wsProxy] Path already has /socket.io: ${path}`);
+            return path;  // WebSocket upgrade case
+        }
+        const newPath = '/socket.io' + path;
+        console.log(`🔌 [wsProxy] Adding /socket.io: ${path} -> ${newPath}`);
+        return newPath;  // Express middleware case
     },
     on: {
         proxyReq: (proxyReq: any, req: any, res: any) => {
-            console.log(`🔌 [Gateway WebSocket] Proxying: ${req.method} ${req.url} -> /socket.io${req.url}`);
+            console.log(`🔌 [Gateway WebSocket] Proxying HTTP: ${req.method} ${req.url}`);
         },
         error: onError,
     }
 });
+
 
 // Note: wsProxy is exported for use in app.ts and server.ts - don't add router.use here
 

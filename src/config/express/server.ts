@@ -10,7 +10,11 @@ const startServer = () => {
   server.on('upgrade', (req, socket, head) => {
     console.log('🔌 [Gateway] WebSocket upgrade request:', req.url);
     if (req.url?.startsWith('/socket.io')) {
+      // URL already includes /socket.io, proxy directly
+      console.log('🔌 [Gateway] Forwarding WebSocket upgrade to messaging-service');
       wsProxy.upgrade(req, socket as any, head);
+    } else {
+      console.log('🔌 [Gateway] Unknown WebSocket path, ignoring:', req.url);
     }
   });
 
