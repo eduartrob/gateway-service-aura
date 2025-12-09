@@ -67,9 +67,14 @@ const wsProxy = createProxyMiddleware({
     target: MICROSERVICES.messaging,
     changeOrigin: true,
     ws: true,  // Enable WebSocket proxying
+    pathRewrite: (path: string) => {
+        // Express strips /socket.io when using app.use('/socket.io', ...)
+        // We need to add it back for the messaging-service
+        return '/socket.io' + path;
+    },
     on: {
         proxyReq: (proxyReq: any, req: any, res: any) => {
-            console.log('🔌 [Gateway WebSocket] Proxying socket.io request');
+            console.log(`🔌 [Gateway WebSocket] Proxying: ${req.method} ${req.url} -> /socket.io${req.url}`);
         },
         error: onError,
     }
