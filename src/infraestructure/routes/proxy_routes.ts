@@ -67,34 +67,26 @@ const wsProxy = createProxyMiddleware({
     target: MICROSERVICES.messaging,
     changeOrigin: true,
     ws: true,  // Enable WebSocket proxying
-    pathRewrite: (path: string) => {
-        // Express middleware strips /socket.io, but WebSocket upgrade keeps it
-        // Only add /socket.io if not already present
-        if (path.startsWith('/socket.io')) {
-            console.log(`🔌 [wsProxy] Path already has /socket.io: ${path}`);
-            return path;  // WebSocket upgrade case
-        }
-        const newPath = '/socket.io' + path;
-        console.log(`🔌 [wsProxy] Adding /socket.io: ${path} -> ${newPath}`);
-        return newPath;  // Express middleware case
-    },
+    // No pathRewrite needed - Express mounts at /socket.io which becomes the root
+    // For HTTP polling: Express strips /socket.io, we get /?EIO=4..., forward as /socket.io/?EIO=4...
+    // For WS upgrade: Path is already /socket.io/?EIO=4..., forward as-is
     on: {
         proxyReq: (proxyReq: any, req: any, res: any) => {
-            console.log(`🔌 [wsProxy] Proxying: ${req.method} ${req.url}`);
-            console.log(`🔌 [wsProxy] Target: ${MICROSERVICES.messaging}`);
-            console.log(`🔌 [wsProxy] ProxyReq path: ${proxyReq.path}`);
+            // For HTTP requests through Express middleware, path needs /socket.io prefix
+            if (!proxyReq.path.startsWith('/socket.io')) {
+                proxyReq.path = '/socket.io' + proxyReq.path;
+            }
+            console.log(`🔌 [wsProxy] Proxying to: ${MICROSERVICES.messaging}${proxyReq.path}`);
         },
         proxyRes: (proxyRes: any, req: any, res: any) => {
-            console.log(`🔌 [wsProxy] Response: ${proxyRes.statusCode} for ${req.url}`);
+            console.log(`🔌 [wsProxy] Response: ${proxyRes.statusCode}`);
         },
         error: (err: any, req: any, res: any) => {
             console.error(`🔌 [wsProxy] ERROR: ${err.code} - ${err.message}`);
-            console.error(`🔌 [wsProxy] Request: ${req.method} ${req.url}`);
             onError(err, req, res);
         },
     }
 });
-
 
 
 // Note: wsProxy is exported for use in app.ts and server.ts - don't add router.use here
