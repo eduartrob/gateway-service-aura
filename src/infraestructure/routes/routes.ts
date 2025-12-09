@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import proxyRoutes, { wsProxy } from './proxy_routes';
+import proxyRoutes from './proxy_routes';
 import { authMiddleware } from '../../middlewares/auth_middleware';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { MICROSERVICES } from '../../config/config';
@@ -23,8 +23,7 @@ router.use('/uploads', createProxyMiddleware({
     },
 }));
 
-// 🔥 Socket.io proxy at ROOT level (not under /api) - handles HTTP polling
-router.use('/socket.io', wsProxy);
+// Socket.io proxy is now in app.ts - removed from here to avoid conflicts
 
 router.use('/api', authMiddleware);
 router.use('/api', proxyRoutes);

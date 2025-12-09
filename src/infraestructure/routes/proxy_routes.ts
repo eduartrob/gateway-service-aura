@@ -75,9 +75,10 @@ const wsProxy = createProxyMiddleware({
     }
 });
 
-router.use('/socket.io', wsProxy);
+// Note: wsProxy is exported for use in app.ts and server.ts - don't add router.use here
 
 // Proxy para el servicio de Messaging (Chat)
+
 router.use('/messaging', createProxyMiddleware({
     target: MICROSERVICES.messaging,
     changeOrigin: true,
