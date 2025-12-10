@@ -151,7 +151,54 @@ router.use('/notifications', createProxyMiddleware({
     }
 }));
 
+// ---------------------------------------------------------------------------
+// AI SERVICES (Python)
+// ---------------------------------------------------------------------------
+
+// Proxy para el servicio de Chatbot (Gemini AI)
+router.use('/chatbot', createProxyMiddleware({
+    target: MICROSERVICES.chatbot,
+    changeOrigin: true,
+    pathRewrite: {
+        '^/': '/api/v1/chat/',  // /chatbot/message -> /api/v1/chat/message
+    },
+    on: {
+        proxyReq: onProxyReq,
+        proxyRes: onProxyRes,
+        error: onError,
+    }
+}));
+
+// Proxy para el servicio de Clustering/Data Mining
+router.use('/clustering', createProxyMiddleware({
+    target: MICROSERVICES.clustering,
+    changeOrigin: true,
+    pathRewrite: {
+        '^/': '/api/v1/',  // /clustering/users -> /api/v1/users
+    },
+    on: {
+        proxyReq: onProxyReq,
+        proxyRes: onProxyRes,
+        error: onError,
+    }
+}));
+
+// 🔥 WebSocket proxy for Clustering real-time data mining dashboard
+const clusteringWsProxy = createProxyMiddleware({
+    target: MICROSERVICES.clustering,
+    changeOrigin: true,
+    ws: true,
+    on: {
+        proxyReq: (proxyReq: any, req: any, res: any) => {
+            console.log(`📊 [clusteringWsProxy] Proxying to: ${MICROSERVICES.clustering}${proxyReq.path}`);
+        },
+        error: (err: any, req: any, res: any) => {
+            console.error(`📊 [clusteringWsProxy] ERROR: ${err.code} - ${err.message}`);
+            onError(err, req, res);
+        },
+    }
+});
 
 
-export { wsProxy };
+export { wsProxy, clusteringWsProxy };
 export default router;

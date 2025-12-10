@@ -9,7 +9,9 @@ export const MICROSERVICES = {
     auth: process.env.AUTH_URL || 'http://localhost:3001',
     social: process.env.POSTS_URL || 'http://localhost:3002',
     messaging: process.env.CHAT_URL || 'http://localhost:3003',
-    notifications: process.env.NOTIFICATIONS_URL || 'http://localhost:3004'
+    notifications: process.env.NOTIFICATIONS_URL || 'http://localhost:3004',
+    clustering: process.env.CLUSTERING_URL || 'http://localhost:8001',
+    chatbot: process.env.CHATBOT_URL || 'http://localhost:8002'
 };
 
 // Debug: Ver qué valores se cargaron

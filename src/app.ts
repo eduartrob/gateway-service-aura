@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 const xssClean = require('xss-clean');
 import mainRouter from './infraestructure/routes/routes';
-import { wsProxy } from './infraestructure/routes/proxy_routes';
+import { wsProxy, clusteringWsProxy } from './infraestructure/routes/proxy_routes';
 
 const app = express();
 
@@ -16,6 +16,12 @@ app.use('/socket.io', (req, res, next) => {
     console.log(`🔌 [Socket.io Middleware] ${req.method} ${req.url}`);
     next();
 }, wsProxy);
+
+// 📊 Clustering WebSocket proxy for real-time data mining dashboard
+app.use('/ws/clustering', (req, res, next) => {
+    console.log(`📊 [Clustering WS Middleware] ${req.method} ${req.url}`);
+    next();
+}, clusteringWsProxy);
 
 app.use(helmet());
 
